@@ -5,34 +5,29 @@ from pydantic import BaseModel, Extra, Field, PositiveInt
 
 
 class CharityProjectBase(BaseModel):
-    name: Optional[str] = Field(None, max_length=100)
-    description: Optional[str] = Field(None)
-    full_amount: Optional[PositiveInt] = Field(None)
-
-    class Config:
-        extra = Extra.forbid
-        min_anystr_length = 1
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = Field(None, min_length=1)
+    full_amount: Optional[PositiveInt]
 
 
-class CharityProjectCreate(BaseModel):
-    name: str = Field(..., max_length=100)
-    description: str = Field(...)
-    full_amount: PositiveInt = Field(...)
-
-    class Config:
-        min_anystr_length = 1
-
-
-class CharityProjectDB(CharityProjectCreate):
-    id: int
-    invested_amount: int = Field(0)
-    fully_invested: bool = Field(False)
-    create_date: datetime
-    close_date: Optional[datetime]
-
-    class Config:
-        orm_mode = True
+class CharityProjectCreate(CharityProjectBase):
+    name: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=1)
+    full_amount: PositiveInt
 
 
 class CharityProjectUpdate(CharityProjectBase):
-    pass
+
+    class Config:
+        extra = Extra.forbid
+
+
+class CharityProjectDB(CharityProjectBase):
+    id: int
+    invested_amount: Optional[int]
+    create_date: Optional[datetime]
+    close_date: Optional[datetime]
+    fully_invested: Optional[bool]
+
+    class Config:
+        orm_mode = True
