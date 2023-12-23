@@ -12,8 +12,6 @@ from app.schemas.charity_project import (CharityProjectCreate,
 
 class CRUDCharityProject(CRUDBase):
 
-    
-
     async def create_project(
             self,
             obj_in: CharityProjectCreate,
