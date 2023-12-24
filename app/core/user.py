@@ -16,6 +16,13 @@ from app.models.user import User
 from app.schemas.user import UserCreate
 
 
+LIFETIME = 3600
+LENGTH = 3
+USER_EXIST = 'Пользователь {email} зарегистрирован.'
+PASSWORD_LENGTH = 'Password should be at least 3 characters'
+PASSWORD_EMAIL = 'Password should not contain e-mail'
+
+
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
 
@@ -24,7 +31,7 @@ bearer_transport = BearerTransport(tokenUrl='auth/jwt/login')
 
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=settings.secret, lifetime_seconds=3600)
+    return JWTStrategy(secret=settings.secret, lifetime_seconds=LIFETIME)
 
 
 auth_backend = AuthenticationBackend(
@@ -41,19 +48,19 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         password: str,
         user: Union[UserCreate, User],
     ) -> None:
-        if len(password) < 3:
+        if len(password) < LENGTH:
             raise InvalidPasswordException(
-                reason='Password should be at least 3 characters'
+                reason=PASSWORD_LENGTH
             )
         if user.email in password:
             raise InvalidPasswordException(
-                reason='Password should not contain e-mail'
+                reason=PASSWORD_EMAIL
             )
 
     async def on_after_register(
             self, user: User, request: Optional[Request] = None
     ):
-        print(f'Пользователь {user.email} зарегистрирован.')
+        print(USER_EXIST.format(email=user.email))
 
 
 async def get_user_manager(user_db=Depends(get_user_db)):

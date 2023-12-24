@@ -35,6 +35,8 @@ async def create_new_charity_project(
     await check_name(project.name, session)
     new_project = await charity_project_crud.create_project(project, session)
     new_project = await donation_process(new_project, Donation, session)
+    await session.commit()
+    await session.refresh(new_project)
     return new_project
 
 

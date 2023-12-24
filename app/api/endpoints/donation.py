@@ -13,22 +13,6 @@ from app.services.investment import donation_process
 router = APIRouter()
 
 
-@router.post(
-    '/',
-    response_model=DonationDB,
-    response_model_exclude_none=True,
-    response_model_exclude={'user_id'}
-)
-async def create_donation(
-    donation: DonationCreate,
-    session: AsyncSession = Depends(get_async_session),
-    user: User = Depends(current_user),
-):
-    new_donation = await donation_crud.create_donation(donation, session, user)
-    new_donation = await donation_process(new_donation, CharityProject, session)
-    return new_donation
-
-
 @router.get(
     '/',
     response_model=List[DonationDBFull],
@@ -51,3 +35,21 @@ async def get_my_donations(
 ):
     donations = await donation_crud.get_by_user(session=session, user=user)
     return donations
+
+
+@router.post(
+    '/',
+    response_model=DonationDB,
+    response_model_exclude_none=True,
+    response_model_exclude={'user_id'}
+)
+async def create_donation(
+    donation: DonationCreate,
+    session: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_user),
+):
+    new_donation = await donation_crud.create_donation(donation, session, user)
+    new_donation = await donation_process(new_donation, CharityProject, session)
+    await session.commit()
+    await session.refresh(new_donation)
+    return new_donation
